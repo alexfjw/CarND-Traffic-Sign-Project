@@ -12149,71 +12149,50 @@ Number of classes = 43
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### Define your architecture here.</span>
 <span class="c1">### Feel free to use as many code cells as needed.</span>
 
+<span class="n">mu</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">sigma</span> <span class="o">=</span> <span class="mf">0.1</span>
+
 <span class="k">def</span> <span class="nf">parametric_relu</span><span class="p">(</span><span class="n">_x</span><span class="p">):</span>
     <span class="n">alphas</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">_x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
     <span class="n">pos</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">_x</span><span class="p">)</span>
     <span class="n">neg</span> <span class="o">=</span> <span class="n">alphas</span> <span class="o">*</span> <span class="p">(</span><span class="n">_x</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">_x</span><span class="p">))</span> <span class="o">*</span> <span class="mf">0.5</span>
-
     <span class="k">return</span> <span class="n">pos</span> <span class="o">+</span> <span class="n">neg</span>
 
+<span class="k">def</span> <span class="nf">conv</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">filter_size</span><span class="p">,</span> <span class="n">in_d</span><span class="p">,</span> <span class="n">out_d</span><span class="p">,</span> <span class="n">with_prelu</span><span class="p">):</span>
+    <span class="n">conv_W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">filter_size</span><span class="p">,</span> <span class="n">filter_size</span><span class="p">,</span> <span class="n">in_d</span><span class="p">,</span> <span class="n">out_d</span><span class="p">),</span> <span class="n">mean</span> <span class="o">=</span> <span class="n">mu</span><span class="p">,</span> <span class="n">stddev</span> <span class="o">=</span> <span class="n">sigma</span><span class="p">))</span>
+    <span class="n">conv_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">out_d</span><span class="p">))</span>
+    <span class="n">conv_out</span>  <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">conv_W</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">conv_b</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">with_prelu</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">parametric_relu</span><span class="p">(</span><span class="n">conv_out</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">conv_res</span>
 
-<span class="c1">## using smaller than lenet architecture first</span>
+<span class="k">def</span> <span class="nf">maxpool</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">filter_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">max_pool</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ksize</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">filter_size</span><span class="p">,</span> <span class="n">filter_size</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">stride</span><span class="p">,</span><span class="n">stride</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">fc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">in_d</span><span class="p">,</span> <span class="n">out_d</span><span class="p">,</span> <span class="n">with_prelu</span><span class="p">):</span>
+    <span class="n">fc_W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">in_d</span><span class="p">,</span> <span class="n">out_d</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
+    <span class="n">fc_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">out_d</span><span class="p">))</span>
+    <span class="n">fc_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">fc_W</span><span class="p">)</span> <span class="o">+</span> <span class="n">fc_b</span>
+    <span class="k">if</span> <span class="n">with_prelu</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">parametric_relu</span><span class="p">(</span><span class="n">fc_layer</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fc_layer</span>
+    
 <span class="k">def</span> <span class="nf">basicNet</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">keep_prob</span><span class="p">,</span> <span class="n">is_train</span><span class="p">):</span>
-    <span class="n">mu</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">sigma</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">conv1</span> <span class="o">=</span> <span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">conv2</span> <span class="o">=</span> <span class="n">conv</span><span class="p">(</span><span class="n">conv1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">conv3</span> <span class="o">=</span> <span class="n">conv</span><span class="p">(</span><span class="n">conv2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">pool1</span> <span class="o">=</span> <span class="n">maxpool</span><span class="p">(</span><span class="n">conv3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     
-    <span class="n">conv1_W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
-    <span class="n">conv1_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">))</span>
-    <span class="n">conv1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">conv1_W</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">conv1_b</span>
-    <span class="c1"># conv1 = tf.contrib.layers.batch_norm(conv1, is_training=is_train)</span>
-    <span class="c1"># conv1 = tf.nn.relu(conv1)</span>
-    <span class="n">conv1</span> <span class="o">=</span> <span class="n">parametric_relu</span><span class="p">(</span><span class="n">conv1</span><span class="p">)</span>
-    <span class="n">conv1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">max_pool</span><span class="p">(</span><span class="n">conv1</span><span class="p">,</span> <span class="n">ksize</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span>
+    <span class="n">conv4</span> <span class="o">=</span> <span class="n">conv</span><span class="p">(</span><span class="n">pool1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">conv5</span> <span class="o">=</span> <span class="n">conv</span><span class="p">(</span><span class="n">conv4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">pool2</span> <span class="o">=</span> <span class="n">maxpool</span><span class="p">(</span><span class="n">conv5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     
-    <span class="n">conv2_W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">16</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
-    <span class="n">conv2_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">conv2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">conv1</span><span class="p">,</span> <span class="n">conv2_W</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">conv2_b</span>
-    <span class="c1"># conv2 = tf.contrib.layers.batch_norm(conv2, is_training=is_train)</span>
-    <span class="c1"># conv2 = tf.nn.relu(conv2)</span>
-    <span class="n">conv2</span> <span class="o">=</span> <span class="n">parametric_relu</span><span class="p">(</span><span class="n">conv2</span><span class="p">)</span>
-    <span class="n">conv2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">max_pool</span><span class="p">(</span><span class="n">conv2</span><span class="p">,</span> <span class="n">ksize</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span>
-    
-    <span class="n">conv3_W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="mi">32</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
-    <span class="n">conv3_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">32</span><span class="p">))</span>
-    <span class="n">conv3</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">conv2</span><span class="p">,</span> <span class="n">conv3_W</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">conv3_b</span>
-    <span class="c1"># conv3 = tf.contrib.layers.batch_norm(conv3, is_training=is_train)</span>
-    <span class="c1"># conv3 = tf.nn.relu(conv3)</span>
-    <span class="n">conv3</span> <span class="o">=</span> <span class="n">parametric_relu</span><span class="p">(</span><span class="n">conv3</span><span class="p">)</span>
-    <span class="n">conv3</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">max_pool</span><span class="p">(</span><span class="n">conv3</span><span class="p">,</span> <span class="n">ksize</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span>
-    
-    <span class="n">conv4_W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">32</span><span class="p">,</span><span class="mi">64</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
-    <span class="n">conv4_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">64</span><span class="p">))</span>
-    <span class="n">conv4</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">conv3</span><span class="p">,</span> <span class="n">conv4_W</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">conv4_b</span>
-    <span class="c1"># conv4 = tf.contrib.layers.batch_norm(conv4, is_training=is_train)</span>
-    <span class="n">conv4</span> <span class="o">=</span> <span class="n">parametric_relu</span><span class="p">(</span><span class="n">conv4</span><span class="p">)</span>
-    <span class="c1"># conv4 = tf.nn.relu(conv4)</span>
-    
-    <span class="n">conv5_W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
-    <span class="n">conv5_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">64</span><span class="p">))</span>
-    <span class="n">conv5</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">conv4</span><span class="p">,</span> <span class="n">conv5_W</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">conv5_b</span>
-    <span class="c1"># conv5 = tf.contrib.layers.batch_norm(conv5, is_training=is_train)</span>
-    <span class="c1"># conv5 = tf.nn.relu(conv5)</span>
-    <span class="n">conv4</span> <span class="o">=</span> <span class="n">parametric_relu</span><span class="p">(</span><span class="n">conv5</span><span class="p">)</span>
-    <span class="n">conv5</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">max_pool</span><span class="p">(</span><span class="n">conv5</span><span class="p">,</span> <span class="n">ksize</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span>
-    
-    <span class="c1"># might want to add another resblock here</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">conv5</span>
-    
-    <span class="n">fc0</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-    <span class="n">fc0_W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
-    <span class="n">fc0_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1024</span><span class="p">))</span>
-    <span class="n">fc0</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">fc0</span><span class="p">,</span> <span class="n">fc0_W</span><span class="p">)</span> <span class="o">+</span> <span class="n">fc0_b</span>
-    <span class="n">fc0</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">fc0</span><span class="p">)</span>
-    <span class="n">fc0</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">fc0</span><span class="p">,</span> <span class="n">keep_prob</span><span class="p">)</span>
-    
-    <span class="n">fc1_W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
-    <span class="n">fc1_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_classes</span><span class="p">))</span>
-    <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">fc0</span><span class="p">,</span> <span class="n">fc1_W</span><span class="p">)</span> <span class="o">+</span> <span class="n">fc1_b</span>
+    <span class="n">flat</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">pool2</span><span class="p">)</span>
+    <span class="n">fc0</span> <span class="o">=</span> <span class="n">fc</span><span class="p">(</span><span class="n">flat</span><span class="p">,</span> <span class="mi">12288</span><span class="p">,</span> <span class="mi">2048</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">dropout0</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">fc0</span><span class="p">,</span> <span class="n">keep_prob</span><span class="p">)</span>
+    <span class="n">logits</span> <span class="o">=</span> <span class="n">fc</span><span class="p">(</span><span class="n">dropout0</span><span class="p">,</span> <span class="mi">2048</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     
     <span class="k">return</span> <span class="n">logits</span>
     
@@ -12244,7 +12223,7 @@ sets imply underfitting. A high accuracy on the training set but low accuracy on
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### Train your model here.</span>
@@ -12253,13 +12232,13 @@ sets imply underfitting. A high accuracy on the training set but low accuracy on
 <span class="c1">### the accuracy on the test set should be calculated and reported as well.</span>
 <span class="c1">### Feel free to use as many code cells as needed.</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">shuffle</span>
-<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">80</span>
+<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">15</span>
 <span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">256</span>
 
 <span class="n">global_step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">starter_learning_rate</span> <span class="o">=</span> <span class="mf">0.001</span>
 <span class="n">learning_rate</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">exponential_decay</span><span class="p">(</span><span class="n">starter_learning_rate</span><span class="p">,</span> <span class="n">global_step</span><span class="p">,</span>
-                                           <span class="mi">10000</span><span class="p">,</span> <span class="mf">0.96</span><span class="p">,</span> <span class="n">staircase</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                           <span class="mi">30000</span><span class="p">,</span> <span class="mf">0.96</span><span class="p">,</span> <span class="n">staircase</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">))</span>
 <span class="n">is_train</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
@@ -12294,7 +12273,7 @@ sets imply underfitting. A high accuracy on the training set but low accuracy on
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
@@ -12348,99 +12327,19 @@ sets imply underfitting. A high accuracy on the training set but low accuracy on
 <pre>Training...
 
 Found new best validation accuracy
-Saved Validation Accuracy = 0.697
+Saved Validation Accuracy = 0.693
 Model saved
 
 EPOCH 1 ...
-Train Accuracy = 0.778
-Validation Accuracy = 0.697
+Train Accuracy = 0.815
+Validation Accuracy = 0.693
 
 Found new best validation accuracy
-Saved Validation Accuracy = 0.823
+Saved Validation Accuracy = 0.863
 Model saved
 
 Found new best validation accuracy
-Saved Validation Accuracy = 0.842
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.864
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.878
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.895
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.900
-Model saved
-
-EPOCH 9 ...
-Train Accuracy = 0.997
-Validation Accuracy = 0.900
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.902
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.903
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.905
-Model saved
-
-EPOCH 17 ...
-Train Accuracy = 0.997
-Validation Accuracy = 0.900
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.913
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.916
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.922
-Model saved
-
-EPOCH 25 ...
-Train Accuracy = 0.998
-Validation Accuracy = 0.922
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.922
-Model saved
-
-EPOCH 33 ...
-Train Accuracy = 1.000
-Validation Accuracy = 0.921
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.922
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.923
-Model saved
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.924
-Model saved
-
-EPOCH 41 ...
-Train Accuracy = 0.998
-Validation Accuracy = 0.912
-
-Found new best validation accuracy
-Saved Validation Accuracy = 0.925
+Saved Validation Accuracy = 0.909
 Model saved
 
 Found new best validation accuracy
@@ -12448,37 +12347,69 @@ Saved Validation Accuracy = 0.928
 Model saved
 
 Found new best validation accuracy
-Saved Validation Accuracy = 0.934
-Model saved
-
-EPOCH 49 ...
-Train Accuracy = 0.999
-Validation Accuracy = 0.931
-
-Found new best validation accuracy
 Saved Validation Accuracy = 0.939
 Model saved
 
-EPOCH 57 ...
-Train Accuracy = 0.999
-Validation Accuracy = 0.932
-
-EPOCH 65 ...
-Train Accuracy = 0.999
-Validation Accuracy = 0.937
-
 Found new best validation accuracy
-Saved Validation Accuracy = 0.940
+Saved Validation Accuracy = 0.948
 Model saved
 
 Found new best validation accuracy
-Saved Validation Accuracy = 0.944
+Saved Validation Accuracy = 0.949
 Model saved
 
-EPOCH 73 ...
-Train Accuracy = 0.997
-Validation Accuracy = 0.921
+Found new best validation accuracy
+Saved Validation Accuracy = 0.956
+Model saved
 
+EPOCH 9 ...
+Train Accuracy = 1.000
+Validation Accuracy = 0.956
+
+Found new best validation accuracy
+Saved Validation Accuracy = 0.962
+Model saved
+
+Found new best validation accuracy
+Saved Validation Accuracy = 0.967
+Model saved
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># checking test accuracy</span>
+<span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+    <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s2">&quot;./lenet&quot;</span><span class="p">)</span>
+    <span class="n">test_accuracy</span> <span class="o">=</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test accuracy: &quot;</span><span class="p">,</span> <span class="n">test_accuracy</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>INFO:tensorflow:Restoring parameters from ./lenet
+Test accuracy:  0.947585114985
 </pre>
 </div>
 </div>
@@ -12628,7 +12559,7 @@ Validation Accuracy = 0.921
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[74]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### Run the predictions here and use the model to output the prediction for each image.</span>
@@ -12677,7 +12608,7 @@ Validation Accuracy = 0.921
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[75]:</div>
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">top_5</span><span class="p">)</span>
@@ -12697,20 +12628,20 @@ Validation Accuracy = 0.921
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>TopKV2(values=array([[  1.00000000e+00,   1.33373076e-13,   4.00379193e-14,
-          4.55403004e-18,   3.43361721e-18],
-       [  1.00000000e+00,   3.08713036e-17,   1.17216282e-17,
-          6.60414229e-19,   1.27221890e-19],
-       [  9.98515904e-01,   9.86320549e-04,   3.78341472e-04,
-          5.61462148e-05,   3.31525953e-05],
-       [  1.00000000e+00,   1.45667001e-28,   1.03931651e-29,
-          0.00000000e+00,   0.00000000e+00],
-       [  9.99984145e-01,   7.15043234e-06,   4.29352303e-06,
-          4.17413639e-06,   1.51434563e-07]], dtype=float32), indices=array([[25, 21, 30,  1, 29],
-       [12, 40, 33,  9, 14],
-       [12,  6, 20, 32, 41],
-       [13,  6,  1,  0,  2],
-       [13, 23,  1,  3,  9]], dtype=int32))
+<pre>TopKV2(values=array([[  7.91674316e-01,   2.07456037e-01,   4.59771312e-04,
+          1.38266900e-04,   5.49367069e-05],
+       [  9.99973297e-01,   1.16209349e-05,   7.17847706e-06,
+          4.55309373e-06,   1.27608530e-06],
+       [  8.92552674e-01,   2.84785219e-02,   1.68030746e-02,
+          9.94506292e-03,   9.38736089e-03],
+       [  1.00000000e+00,   1.41549061e-09,   4.10676049e-10,
+          2.33861402e-10,   8.20905705e-11],
+       [  6.53777659e-01,   2.81370431e-01,   3.97982672e-02,
+          1.33199748e-02,   3.71490256e-03]], dtype=float32), indices=array([[25, 21, 30, 11, 33],
+       [12, 40, 14, 17,  2],
+       [12, 35, 17, 20, 18],
+       [13,  3,  2, 33,  8],
+       [13,  8,  9,  3, 33]], dtype=int32))
 </pre>
 </div>
 </div>
@@ -12817,7 +12748,7 @@ a = np.array([[ 0.24879643,  0.07032244,  0.12641572,  0.34763842,  0.07893497,
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[76]:</div>
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### Print out the top five softmax probabilities for the predictions on the German traffic sign images found on the web. </span>
@@ -12839,20 +12770,20 @@ a = np.array([[ 0.24879643,  0.07032244,  0.12641572,  0.34763842,  0.07893497,
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>TopKV2(values=array([[  1.00000000e+00,   1.33373076e-13,   4.00379193e-14,
-          4.55403004e-18,   3.43361721e-18],
-       [  1.00000000e+00,   3.08713036e-17,   1.17216282e-17,
-          6.60414229e-19,   1.27221890e-19],
-       [  9.98515904e-01,   9.86320549e-04,   3.78341472e-04,
-          5.61462148e-05,   3.31525953e-05],
-       [  1.00000000e+00,   1.45667001e-28,   1.03931651e-29,
-          0.00000000e+00,   0.00000000e+00],
-       [  9.99984145e-01,   7.15043234e-06,   4.29352303e-06,
-          4.17413639e-06,   1.51434563e-07]], dtype=float32), indices=array([[25, 21, 30,  1, 29],
-       [12, 40, 33,  9, 14],
-       [12,  6, 20, 32, 41],
-       [13,  6,  1,  0,  2],
-       [13, 23,  1,  3,  9]], dtype=int32))
+<pre>TopKV2(values=array([[  7.91674316e-01,   2.07456037e-01,   4.59771312e-04,
+          1.38266900e-04,   5.49367069e-05],
+       [  9.99973297e-01,   1.16209349e-05,   7.17847706e-06,
+          4.55309373e-06,   1.27608530e-06],
+       [  8.92552674e-01,   2.84785219e-02,   1.68030746e-02,
+          9.94506292e-03,   9.38736089e-03],
+       [  1.00000000e+00,   1.41549061e-09,   4.10676049e-10,
+          2.33861402e-10,   8.20905705e-11],
+       [  6.53777659e-01,   2.81370431e-01,   3.97982672e-02,
+          1.33199748e-02,   3.71490256e-03]], dtype=float32), indices=array([[25, 21, 30, 11, 33],
+       [12, 40, 14, 17,  2],
+       [12, 35, 17, 20, 18],
+       [13,  3,  2, 33,  8],
+       [13,  8,  9,  3, 33]], dtype=int32))
 </pre>
 </div>
 </div>
@@ -12903,7 +12834,7 @@ a = np.array([[ 0.24879643,  0.07032244,  0.12641572,  0.34763842,  0.07893497,
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### Visualize your network&#39;s feature maps here.</span>
