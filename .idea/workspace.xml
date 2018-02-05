@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="2c13997d-21cb-4997-bc57-a25aba5c868f" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/Traffic_Sign_Classifier.html" afterPath="$PROJECT_DIR$/Traffic_Sign_Classifier.html" />
-      <change beforePath="$PROJECT_DIR$/Traffic_Sign_Classifier.ipynb" afterPath="$PROJECT_DIR$/Traffic_Sign_Classifier.ipynb" />
-      <change beforePath="$PROJECT_DIR$/lenet.data-00000-of-00001" afterPath="$PROJECT_DIR$/lenet.data-00000-of-00001" />
-      <change beforePath="$PROJECT_DIR$/lenet.index" afterPath="$PROJECT_DIR$/lenet.index" />
-      <change beforePath="$PROJECT_DIR$/lenet.meta" afterPath="$PROJECT_DIR$/lenet.meta" />
-    </list>
+    <list default="true" id="2c13997d-21cb-4997-bc57-a25aba5c868f" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
